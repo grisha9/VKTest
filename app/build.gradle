@@ -1,0 +1,36 @@
+apply plugin: 'com.android.application'
+
+repositories {
+    maven { url 'https://raw.github.com/beshkenadze/dozer/mvn-repo' }
+}
+
+android {
+    compileSdkVersion 21
+    buildToolsVersion "21.1.2"
+
+    defaultConfig {
+        applicationId "ru.rzn.myasoedov.vktest"
+        minSdkVersion 14
+        targetSdkVersion 21
+        versionCode 1
+        versionName "1.0"
+
+        buildConfigField "String", "DB_NAME", "\"VK_TEST_DB\""
+        buildConfigField "int", "DB_VERSION", "1"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile 'com.android.support:appcompat-v7:21.0.3'
+    compile 'com.squareup.picasso:picasso:2.5.2'
+    compile 'com.pkmmte.view:circularimageview:1.1'
+    compile 'net.beshkenadze.dozer:library:0.1.3'
+    compile project(':vksdk_library')
+}
