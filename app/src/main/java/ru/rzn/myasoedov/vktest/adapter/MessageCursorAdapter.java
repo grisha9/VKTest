@@ -12,9 +12,12 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 import com.vk.sdk.api.model.VKApiMessage;
+import com.vk.sdk.api.model.VKApiPhoto;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 
 import ru.rzn.myasoedov.vktest.R;
 import ru.rzn.myasoedov.vktest.dto.VKMessage;
@@ -24,6 +27,12 @@ import ru.rzn.myasoedov.vktest.dto.VKMessageWrapper;
  * Created by grisha on 14.05.15.
  */
 public class MessageCursorAdapter extends CursorAdapter {
+    private static final int MY_TEXT_MESSAGE = 0;
+    private static final int MY_PHOTO_MESSAGE = 1;
+    private static final int TEXT_MESSAGE = 2;
+    private static final int PHOTO_MESSAGE = 3;
+    private static final int VIEW_HOLDER = 2123456789;
+
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm");
     private final LayoutInflater inflater;
 
@@ -31,30 +40,104 @@ public class MessageCursorAdapter extends CursorAdapter {
         super(context, c, flags);
         inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
+
+    @Override
+    public int getItemViewType(int position) {
+        VKApiMessage message = getItem(position);
+        if (message.out && !message.attachments.isEmpty()) {
+            return MY_PHOTO_MESSAGE;
+        } else if (message.out) {
+            return MY_TEXT_MESSAGE;
+        } else if (!message.attachments.isEmpty()) {
+            return PHOTO_MESSAGE;
+        } else {
+            return TEXT_MESSAGE;
+        }
+    }
+
+    @Override
+    public int getViewTypeCount() {
+        return 4;
+    }
+
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup parent) {
-        View view = inflater.inflate(R.layout.dialog_item, parent, false);
         ViewHolder viewHolder = new ViewHolder();
-        viewHolder.message = (TextView) view.findViewById(R.id.title);
+        int itemViewType = getItemViewType(cursor.getPosition());
+        View view;
+        switch (itemViewType) {
+            case MY_TEXT_MESSAGE:
+                view = inflater.inflate(R.layout.message_item_my, parent, false);
+                break;
+            case MY_PHOTO_MESSAGE:
+                view = inflater.inflate(R.layout.message_item_my_photo, parent, false);
+                initViewHolderImages(viewHolder, view);
+                break;
+            case TEXT_MESSAGE:
+                view = inflater.inflate(R.layout.message_item, parent, false);
+                viewHolder.avatar = (ImageView) view.findViewById(R.id.avatar);
+                break;
+            default:
+                view = inflater.inflate(R.layout.message_item_photo, parent, false);
+                viewHolder.avatar = (ImageView) view.findViewById(R.id.avatar);
+                initViewHolderImages(viewHolder, view);
+                break;
+        }
+
+        viewHolder.message = (TextView) view.findViewById(R.id.message);
         viewHolder.date = (TextView) view.findViewById(R.id.date);
-        viewHolder.image = (ImageView) view.findViewById(R.id.image);
-        view.setTag(viewHolder);
+        view.setTag(VIEW_HOLDER, viewHolder);
         return view;
+    }
+
+    private void initViewHolderImages(ViewHolder viewHolder, View view) {
+        viewHolder.imageViews.add((ImageView) view.findViewById(R.id.image));
+        viewHolder.imageViews.add((ImageView) view.findViewById(R.id.image1));
+        viewHolder.imageViews.add((ImageView) view.findViewById(R.id.image2));
+        viewHolder.imageViews.add((ImageView) view.findViewById(R.id.image3));
+        viewHolder.imageViews.add((ImageView) view.findViewById(R.id.image4));
+        viewHolder.imageViews.add((ImageView) view.findViewById(R.id.image5));
+        viewHolder.imageViews.add((ImageView) view.findViewById(R.id.image6));
+        viewHolder.imageViews.add((ImageView) view.findViewById(R.id.image7));
+        viewHolder.imageViews.add((ImageView) view.findViewById(R.id.image8));
+        viewHolder.imageViews.add((ImageView) view.findViewById(R.id.image9));
     }
 
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
-        ViewHolder viewHolder = (ViewHolder) view.getTag();
+        ViewHolder viewHolder = (ViewHolder) view.getTag(VIEW_HOLDER);
         VKMessage message = VKMessageWrapper.getMessageFromCursor(cursor);
         viewHolder.message.setText(message.body);
         viewHolder.date.setText(dateFormat.format(new Date(message.date * 1000)));
-        if (message.getUserPhoto() != null) {
+        if (viewHolder.avatar != null) {
             try {
                 Picasso.with(context)
                         .load(message.getUserPhoto())
-                        .into(viewHolder.image);
+                        .into(viewHolder.avatar);
             } catch (Exception e) {
-                Log.e("!!!!" + message.getUserPhoto(), "hgfghfh");
+                Log.e("!!!!" + message.getUserPhoto(), e.toString());
+            }
+        }
+
+        bindImages(context, viewHolder, message);
+
+    }
+
+    private void bindImages(Context context, ViewHolder viewHolder, VKMessage message) {
+        if (!message.attachments.isEmpty()) {
+            for (int i = 0; i < message.attachments.size(); i++) {
+                VKApiPhoto attachment = (VKApiPhoto) message.attachments.get(i);
+                viewHolder.imageViews.get(i).setVisibility(View.VISIBLE);
+                try {
+                    Picasso.with(context)
+                            .load(attachment.photo_130)
+                            .into(viewHolder.imageViews.get(i));
+                } catch (Exception e) {
+                    Log.e("!!!!" + message.getUserPhoto(), e.toString());
+                }
+            }
+            for(int i = message.attachments.size(); i < viewHolder.imageViews.size(); i++) {
+                viewHolder.imageViews.get(i).setVisibility(View.GONE);
             }
         }
     }
@@ -69,6 +152,7 @@ public class MessageCursorAdapter extends CursorAdapter {
     private class ViewHolder {
         TextView date;
         TextView message;
-        ImageView image;
+        ImageView avatar;
+        List<ImageView> imageViews = new LinkedList<>();
     }
 }

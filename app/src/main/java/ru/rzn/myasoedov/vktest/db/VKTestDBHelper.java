@@ -17,6 +17,8 @@ public class VKTestDBHelper extends SQLiteOpenHelper {
     public static final String COLUMN_DATE = "Date";
     public static final String COLUMN_PREVIEW = "preview";
     public static final String COLUMN_TITLE = "title";
+    public static final String COLUMN_OUT = "out";
+    public static final String COLUMN_IS_FIRST = "firs";
     public static final String COLUMN_CUSTOM_PHOTO_URL = "customPhotoUrl";
     public static final String COLUMN_PHOTO_URL = "photoUrl";
     public static final String COLUMN_PHOTO_URL1 = "photoUrl1";
@@ -28,6 +30,7 @@ public class VKTestDBHelper extends SQLiteOpenHelper {
     public static final String COLUMN_PHOTO_URL7 = "photoUrl7";
     public static final String COLUMN_PHOTO_URL8 = "photoUrl8";
     public static final String COLUMN_PHOTO_URL9 = "photoUrl9";
+    public static final String COLUMN_PHOTO_URL10 = "photoUrl10";
 
     public static final String COLUMN_MESSAGE_ID = "messageId";
     public static final String COLUMN_MESSAGE = "message";
@@ -54,17 +57,18 @@ public class VKTestDBHelper extends SQLiteOpenHelper {
                 COLUMN_USER_ID + " INTEGER REFERENCES " + TABLE_PARTICIPANT + "(" + COLUMN_USER_ID + "), " +
                 COLUMN_MESSAGE_ID + " INTEGER UNIQUE NOT NULL, " +
                 COLUMN_MESSAGE + " TEXT, " +
-                COLUMN_PHOTO_URL + " TEXT " +
-                COLUMN_PHOTO_URL1 + " TEXT " +
-                COLUMN_PHOTO_URL2 + " TEXT " +
-                COLUMN_PHOTO_URL3 + " TEXT " +
-                COLUMN_PHOTO_URL4 + " TEXT " +
-                COLUMN_PHOTO_URL5 + " TEXT " +
-                COLUMN_PHOTO_URL6 + " TEXT " +
-                COLUMN_PHOTO_URL7 + " TEXT " +
-                COLUMN_PHOTO_URL8 + " TEXT " +
-                COLUMN_PHOTO_URL9 + " TEXT " +
-                COLUMN_DATE + " INT NOT NULL);");
+                COLUMN_OUT + " INTEGER, " +
+                COLUMN_PHOTO_URL1 + " TEXT, " +
+                COLUMN_PHOTO_URL2 + " TEXT, " +
+                COLUMN_PHOTO_URL3 + " TEXT, " +
+                COLUMN_PHOTO_URL4 + " TEXT, " +
+                COLUMN_PHOTO_URL5 + " TEXT, " +
+                COLUMN_PHOTO_URL6 + " TEXT, " +
+                COLUMN_PHOTO_URL7 + " TEXT, " +
+                COLUMN_PHOTO_URL8 + " TEXT, " +
+                COLUMN_PHOTO_URL9 + " TEXT, " +
+                COLUMN_PHOTO_URL10 + " TEXT, " +
+                COLUMN_DATE + " INTEGER NOT NULL);");
 
         sqLiteDatabase.execSQL("CREATE TABLE " + TABLE_PARTICIPANT + "(" +
                 BaseColumns._ID + " INTEGER PRIMARY KEY, " +

@@ -27,7 +27,7 @@ import ru.rzn.myasoedov.vktest.service.VKService;
  */
 public class MessageFragment extends ListFragment implements LoaderManager.LoaderCallbacks<Cursor> {
     public static final String CHAT_ID = "chatId";
-    public static final int ITEM_ON_PAGE = 40;
+    public static final int ITEM_ON_PAGE = 50;
     private int chatId;
     private BroadcastReceiver receiver;
     private EndlessScrollListener scrollListener;
@@ -81,6 +81,9 @@ public class MessageFragment extends ListFragment implements LoaderManager.Loade
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        getListView().setStackFromBottom(true);
+        getListView().setDivider(null);
+        getListView().setDividerHeight(0);
         if (scrollListener == null) {
             scrollListener = new EndlessScrollListener() {
                 @Override
@@ -106,7 +109,7 @@ public class MessageFragment extends ListFragment implements LoaderManager.Loade
 //                .build();
         switch (i) {
             case MessageProvider.URI_ALL_MESSAGE:
-                VKService.getMessageByChatId(chatId, true);
+                VKService.getMessageByChatId(chatId, true, ITEM_ON_PAGE, null);
                 return new CursorLoader(getActivity(), MessageProvider.MESSAGE_CONTENT_URI, null,
                         MessageProvider.QUERY_SELECTION, new String[]{String.valueOf(chatId)}, null);
             default:
@@ -118,10 +121,10 @@ public class MessageFragment extends ListFragment implements LoaderManager.Loade
     public void onLoadFinished(Loader loader, Cursor cursor) {
         if (getListAdapter() == null) {
             setListAdapter(new MessageCursorAdapter(getActivity(), cursor, 0));
-            getListView().setSelection(getListAdapter().getCount() - 1);
         } else {
             saveScrollPositionOnCursorChange(cursor.getCount(), getListAdapter().getCount());
             ((CursorAdapter) getListAdapter()).swapCursor(cursor);
+            scrollListener.setLoading(false);
         }
     }
 
