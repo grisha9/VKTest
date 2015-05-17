@@ -50,6 +50,7 @@
                 <action android:name="ru.rzn.myasoedov.vktest.service.SYNC_DIALOGS"/>
                 <action android:name="ru.rzn.myasoedov.vktest.service.SYNC_PARTICIPANT"/>
                 <action android:name="ru.rzn.myasoedov.vktest.service.SYNC_MESSAGE"/>
+                <action android:name="ru.rzn.myasoedov.vktest.service.SYNC_DIALOG_AVATAR"/>
             </intent-filter>
         </service>
     </application>

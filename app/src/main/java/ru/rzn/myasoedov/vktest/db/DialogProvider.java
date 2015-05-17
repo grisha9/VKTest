@@ -15,17 +15,23 @@ import android.text.TextUtils;
 public class DialogProvider extends ContentProvider {
     public static final String TAG = DialogProvider.class.getSimpleName();
     public static final String DELETE_SELECTION = VKTestDBHelper.COLUMN_CHAT_ID + " NOT IN (%s)";
+    public static final String UPDATE_WHERE_CLAUSE = VKTestDBHelper.COLUMN_CHAT_ID + "= ?";
     public static final String AUTHORITY = "ru.rzn.myasoedov.vktest.dialog";
     public static final int URI_ALL_DIALOGS = 1;
     public static final int URI_DIALOG_ID = 2;
+    public static final int URI_DIALOG_WITHOUT_IMAGE = 3;
     public static final Uri DIALOG_CONTENT_URI = Uri.parse("content://"
             + AUTHORITY + "/" + VKTestDBHelper.TABLE_DIALOG);
+    private static final String TABLE_DIALOG_WITHOUT_IMAGE = VKTestDBHelper.TABLE_DIALOG + "WithoutImage";
+    public static final Uri DIALOG_WITHOUT_IMAGE_URI = Uri.parse("content://"
+            + AUTHORITY + "/" + TABLE_DIALOG_WITHOUT_IMAGE);
     private static final UriMatcher uriMatcher;
     private VKTestDBHelper dbHelper;
 
     static {
         uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
         uriMatcher.addURI(AUTHORITY, VKTestDBHelper.TABLE_DIALOG, URI_ALL_DIALOGS);
+        uriMatcher.addURI(AUTHORITY, TABLE_DIALOG_WITHOUT_IMAGE, URI_DIALOG_WITHOUT_IMAGE);
         uriMatcher.addURI(AUTHORITY, VKTestDBHelper.TABLE_DIALOG + "/#", URI_DIALOG_ID);
     }
 
@@ -40,8 +46,12 @@ public class DialogProvider extends ContentProvider {
         if (TextUtils.isEmpty(sort)) {
             sort = VKTestDBHelper.COLUMN_DATE + " DESC";
         }
-        switch (uriMatcher.match(uri)) {
+        int matchUri = uriMatcher.match(uri);
+        switch (matchUri) {
             case URI_ALL_DIALOGS:
+                break;
+            case URI_DIALOG_WITHOUT_IMAGE:
+                selection = VKTestDBHelper.COLUMN_PHOTO_URL + " IS NULL OR " + VKTestDBHelper.COLUMN_PHOTO_URL + " = ''";
                 break;
             case URI_DIALOG_ID:
                 selection = " _ID = " + uri.getLastPathSegment();
@@ -53,7 +63,9 @@ public class DialogProvider extends ContentProvider {
         Cursor cursor = dbHelper.getWritableDatabase()
                 .query(VKTestDBHelper.TABLE_DIALOG, projection, selection, selectionArgs, null,
                         null, sort);
-        cursor.setNotificationUri(getContext().getContentResolver(), uri);
+        if (URI_ALL_DIALOGS == matchUri) {
+            cursor.setNotificationUri(getContext().getContentResolver(), uri);
+        }
         return cursor;
     }
 
@@ -62,6 +74,8 @@ public class DialogProvider extends ContentProvider {
         switch (uriMatcher.match(uri)) {
             case URI_ALL_DIALOGS:
                 return ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd.ru.rzn.myasoedov.db.dialogs";
+            case URI_DIALOG_WITHOUT_IMAGE:
+                return ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd.ru.rzn.myasoedov.db.dialogs.without.image";
             case URI_DIALOG_ID:
                 return ContentResolver.CURSOR_ITEM_BASE_TYPE + "/vnd.ru.rzn.myasoedov.db.dialogs";
         }
@@ -85,13 +99,10 @@ public class DialogProvider extends ContentProvider {
         db.beginTransaction();
         for (ContentValues value : values) {
             try {
-                long l = db.insertOrThrow(VKTestDBHelper.TABLE_DIALOG, null, value);
-                System.out.print(l);
+                db.insertOrThrow(VKTestDBHelper.TABLE_DIALOG, null, value);
             } catch (SQLException e) {
-                int update = db.update(VKTestDBHelper.TABLE_DIALOG, value, VKTestDBHelper
-                                .COLUMN_CHAT_ID + "= ?", new String[]{value
-                        .getAsString(VKTestDBHelper.COLUMN_CHAT_ID)});
-                System.out.print(update);
+                db.update(VKTestDBHelper.TABLE_DIALOG, value, UPDATE_WHERE_CLAUSE,
+                        new String[]{value.getAsString(VKTestDBHelper.COLUMN_CHAT_ID)});
             }
         }
         db.setTransactionSuccessful();

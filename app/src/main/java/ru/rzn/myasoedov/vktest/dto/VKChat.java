@@ -33,8 +33,13 @@ import android.os.Parcelable;
 
 import com.vk.sdk.api.model.VKApiChat;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Chat object describes a user's chat.
@@ -45,8 +50,10 @@ public class VKChat extends VKApiChat implements Parcelable {
     protected String photoUrl;
     protected String customPhotoUrl;
     protected long date;
+    protected List<Integer> collageUsers;
 
     public VKChat() {
+        collageUsers = new LinkedList<>();
     }
 
     @Override
@@ -59,6 +66,13 @@ public class VKChat extends VKApiChat implements Parcelable {
             preview = message.optString("body");
             date = message.optLong("date");
             photoUrl = message.optString("photo_50");
+            JSONArray users = message.optJSONArray("chat_active");
+            if(users != null) {
+                this.users = new int[users.length()];
+                for(int i = 0; i < this.users.length; i++) {
+                    this.users[i] = users.optInt(i);
+                }
+            }
 
         } catch (JSONException e) {
             return null;
@@ -96,6 +110,24 @@ public class VKChat extends VKApiChat implements Parcelable {
 
     public void setCustomPhotoUrl(String customPhotoUrl) {
         this.customPhotoUrl = customPhotoUrl;
+    }
+
+    public List<Integer> getCollageUsers() {
+        return collageUsers;
+    }
+
+    public void setCollageUsers(List<Integer> collageUsers) {
+        this.collageUsers = collageUsers;
+    }
+
+    public List<Integer> getUsers() {
+        ArrayList<Integer> result = new ArrayList<>();
+        if (users != null) {
+            for(Integer id : users) {
+                result.add(id);
+            }
+        }
+        return result;
     }
 
     @Override

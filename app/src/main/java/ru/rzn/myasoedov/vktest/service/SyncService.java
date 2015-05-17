@@ -3,33 +3,45 @@ package ru.rzn.myasoedov.vktest.service;
 import android.app.IntentService;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.database.Cursor;
+import android.util.Log;
 
 import com.vk.sdk.api.model.VKApiMessage;
 import com.vk.sdk.api.model.VKList;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import ru.rzn.myasoedov.vktest.db.DialogProvider;
 import ru.rzn.myasoedov.vktest.db.MessageProvider;
 import ru.rzn.myasoedov.vktest.db.ParticipantProvider;
 import ru.rzn.myasoedov.vktest.dto.VKChat;
 import ru.rzn.myasoedov.vktest.dto.VKChatWrapper;
+import ru.rzn.myasoedov.vktest.dto.VKMessage;
 import ru.rzn.myasoedov.vktest.dto.VKMessageWrapper;
 import ru.rzn.myasoedov.vktest.dto.VKUser;
 import ru.rzn.myasoedov.vktest.dto.VKUserWrapper;
+import ru.rzn.myasoedov.vktest.service.collage.CollageFactory;
 
 
 /**
  * Created by grisha on 11.05.15.
  */
 public class SyncService extends IntentService {
+    public static final String TAG = SyncService.class.getSimpleName();
     public static final String ACTION_SYNC_DIALOGS = "ru.rzn.myasoedov.vktest.service.SYNC_DIALOGS";
     public static final String ACTION_SYNC_PARTICIPANT = "ru.rzn.myasoedov.vktest.service.SYNC_PARTICIPANT";
     public static final String ACTION_SYNC_MESSAGE = "ru.rzn.myasoedov.vktest.service.SYNC_MESSAGE";
+    public static final String ACTION_SYNC_DIALOG_AVATAR = "ru.rzn.myasoedov.vktest.service.SYNC_DIALOG_AVATAR";
     public static final String MODEL_OBJECT = "model-object";
     public static final String DELETE_OLD = "delete-old";
     public static final String CHAT_ID = "chat-id";
+
+    private Lock lock = new ReentrantLock();
 
     public SyncService() {
         super(SyncService.class.getName());
@@ -50,6 +62,9 @@ public class SyncService extends IntentService {
                     syncMessage((VKList<VKApiMessage>) intent.getParcelableExtra(MODEL_OBJECT),
                             chatId, intent.getBooleanExtra(DELETE_OLD, false));
                 }
+                break;
+            case ACTION_SYNC_DIALOG_AVATAR:
+                syncDialogAvatar(intent);
                 break;
         }
     }
@@ -77,6 +92,59 @@ public class SyncService extends IntentService {
         }
     }
 
+    private void syncDialogAvatar(Intent intent) {
+        Cursor cursor = null;
+        if (lock.tryLock()) {
+            try {
+                cursor = getApplicationContext().getContentResolver().query(DialogProvider
+                        .DIALOG_WITHOUT_IMAGE_URI, null, null, null, null);
+                while (cursor.moveToNext()) {
+                    VKChat chat = VKChatWrapper.getChatFromCursor(cursor);
+                    VKList<VKUser> users = intent.getParcelableExtra(String.valueOf(chat.id));
+                    users = (users != null) ? users : new VKList<VKUser>();
+
+                    if (collageUserNotActual(chat.getUsers(), chat.getCollageUsers())) {
+                        List<VKUser> collageUsers = users.size() > 4 ? users.subList(0, 3) : users;
+                        List<Integer> collageUserIds = new LinkedList<>();
+                        for(VKUser user : collageUsers) {
+                            collageUserIds.add(user.getId());
+                        }
+
+                        try {
+                            String collage = CollageFactory.getInstance(collageUsers).getCollage();
+                            chat.setCustomPhotoUrl(collage);
+                            chat.setCollageUsers(collageUserIds);
+                            getApplicationContext().getContentResolver().update(
+                                    DialogProvider.DIALOG_CONTENT_URI,
+                                    VKChatWrapper.getContentValuesForUpdateAvatar(chat),
+                                    DialogProvider.UPDATE_WHERE_CLAUSE,
+                                    new String[] {String.valueOf(chat.getId())});
+                        } catch (Exception e) {
+                            Log.e(TAG, e.getMessage(), e);
+                        }
+                    }
+                }
+            } finally {
+                lock.unlock();
+                if (cursor != null) {
+                    cursor.close();
+                }
+            }
+        }
+    }
+
+    private boolean collageUserNotActual(List<Integer> activeUsers, List<Integer> collageUsers) {
+        if (collageUsers.isEmpty()) {
+            return true;
+        }
+        for(Integer userId : collageUsers) {
+            if (!activeUsers.contains(userId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void syncParticipant(VKList<VKUser> users) {
         HashSet<VKUser> userSet = new HashSet<>();
         for(VKUser user : users) {
@@ -90,9 +158,11 @@ public class SyncService extends IntentService {
     }
 
     private void syncMessage(VKList<VKApiMessage> messages, int chatId, boolean isDeleteOld) {
+        List<VKMessage> vkMessages = markFirstMessages(messages);
+
         HashSet<Integer> ids = new HashSet<>();
         LinkedList<ContentValues> values = new LinkedList<>();
-        for(VKApiMessage message : messages) {
+        for(VKMessage message : vkMessages) {
             values.add(VKMessageWrapper.getContentValues(message, chatId));
             ids.add(message.getId());
         }
@@ -107,6 +177,29 @@ public class SyncService extends IntentService {
             getApplicationContext().getContentResolver().delete(MessageProvider.MESSAGE_CONTENT_URI,
                     MessageProvider.prepareSelectionForDelete(chatId, ids), null);
         }
+    }
+
+    private List<VKMessage> markFirstMessages(VKList<VKApiMessage> messages) {
+        LinkedList<VKMessage> vkMessages = new LinkedList<>();
+        Collections.reverse(messages);
+        VKMessage vkMessage;
+        int currentUserId = -1;
+        for(VKApiMessage message : messages) {
+            vkMessage = new VKMessage();
+            vkMessage.id = message.getId();
+            vkMessage.date = message.date;
+            vkMessage.body = message.body;
+            vkMessage.user_id = message.user_id;
+            vkMessage.out = message.out;
+            vkMessage.attachments = message.attachments;
+            if (currentUserId == -1 || currentUserId != message.user_id) {
+                vkMessage.setFirst(true);
+                currentUserId = message.user_id;
+            }
+
+            vkMessages.add(vkMessage);
+        }
+        return vkMessages;
     }
 
 }

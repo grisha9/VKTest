@@ -1,9 +1,5 @@
 apply plugin: 'com.android.application'
 
-repositories {
-    maven { url 'https://raw.github.com/beshkenadze/dozer/mvn-repo' }
-}
-
 android {
     compileSdkVersion 21
     buildToolsVersion "21.1.2"
@@ -29,8 +25,7 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:21.0.3'
-    compile 'com.squareup.picasso:picasso:2.5.2'
+    compile 'com.nostra13.universalimageloader:universal-image-loader:1.9.2'
     compile 'com.pkmmte.view:circularimageview:1.1'
-    compile 'net.beshkenadze.dozer:library:0.1.3'
     compile project(':vksdk_library')
 }

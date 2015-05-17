@@ -3,7 +3,6 @@ package ru.rzn.myasoedov.vktest.dto;
 import android.content.ContentValues;
 import android.database.Cursor;
 
-import com.vk.sdk.api.model.VKApiMessage;
 import com.vk.sdk.api.model.VKApiPhoto;
 import com.vk.sdk.api.model.VKAttachments;
 
@@ -16,7 +15,7 @@ import ru.rzn.myasoedov.vktest.db.VKTestDBHelper;
  */
 public class VKMessageWrapper {
 
-    public static ContentValues getContentValues(VKApiMessage message, int chatId) {
+    public static ContentValues getContentValues(VKMessage message, int chatId) {
         ContentValues contentValues = new ContentValues();
         contentValues.put(VKTestDBHelper.COLUMN_CHAT_ID, chatId);
         contentValues.put(VKTestDBHelper.COLUMN_MESSAGE_ID, message.id);
@@ -24,6 +23,7 @@ public class VKMessageWrapper {
         contentValues.put(VKTestDBHelper.COLUMN_MESSAGE, message.body);
         contentValues.put(VKTestDBHelper.COLUMN_USER_ID, message.user_id);
         contentValues.put(VKTestDBHelper.COLUMN_OUT, message.out ? 1 : 0);
+        contentValues.put(VKTestDBHelper.COLUMN_IS_FIRST, message.isFirst() ? 1 : 0);
 
         int index = 1;
         for (VKAttachments.VKApiAttachment attachment : message.attachments) {
@@ -42,6 +42,7 @@ public class VKMessageWrapper {
         message.date = cursor.getLong(cursor.getColumnIndex(VKTestDBHelper.COLUMN_DATE));
         message.body = cursor.getString(cursor.getColumnIndex(VKTestDBHelper.COLUMN_MESSAGE));
         message.out = cursor.getInt(cursor.getColumnIndex(VKTestDBHelper.COLUMN_OUT)) == 1;
+        message.setFirst(cursor.getInt(cursor.getColumnIndex(VKTestDBHelper.COLUMN_IS_FIRST)) == 1);
         message.setUserPhoto(cursor.getString(cursor.getColumnIndex(VKTestDBHelper.COLUMN_PHOTO_URL)));
 
         LinkedList<String> urls = new LinkedList<>();

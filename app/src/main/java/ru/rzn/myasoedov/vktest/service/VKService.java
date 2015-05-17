@@ -83,10 +83,15 @@ public class VKService {
             public void onComplete(VKResponse response) {
                 super.onComplete(response);
                 VKList<VKUser> vkApiUsers = new VKList<VKUser>();
+                Intent syncDialogAvatarIntent = new Intent(SyncService.ACTION_SYNC_DIALOG_AVATAR);
                 for (Integer id : chatIds) {
                     try {
-                        vkApiUsers.fill(response.json.getJSONObject("response")
+                        VKList<VKUser> vkChatUsers = new VKList<>();
+                        vkChatUsers.fill(response.json.getJSONObject("response")
                                 .getJSONArray(id.toString()), VKUser.class);
+                        vkApiUsers.addAll(vkChatUsers);
+
+                        syncDialogAvatarIntent.putExtra(id.toString(), vkApiUsers);
                     } catch (JSONException e) {
                         Log.e(SYNC_TAG, e.getMessage());
                     }
@@ -95,6 +100,8 @@ public class VKService {
                     Intent intent = new Intent(SyncService.ACTION_SYNC_PARTICIPANT);
                     intent.putExtra(SyncService.MODEL_OBJECT, vkApiUsers);
                     VKTest.getContext().startService(intent);
+
+                    VKTest.getContext().startService(syncDialogAvatarIntent);
                 }
             }
 

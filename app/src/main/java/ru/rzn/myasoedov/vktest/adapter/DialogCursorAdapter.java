@@ -3,6 +3,7 @@ package ru.rzn.myasoedov.vktest.adapter;
 import android.content.Context;
 import android.database.Cursor;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,7 +11,7 @@ import android.widget.CursorAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.squareup.picasso.Picasso;
+import com.nostra13.universalimageloader.core.ImageLoader;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -51,9 +52,11 @@ public class DialogCursorAdapter extends CursorAdapter {
         viewHolder.date.setText(dateFormat.format(new Date(chat.getDate() * 1000)));
         String url = TextUtils.isEmpty(chat.getPhotoUrl())
                 ? chat.getCustomPhotoUrl() : chat.getPhotoUrl();
-        Picasso.with(context)
-                .load(url)
-                .into(viewHolder.image);
+        try {
+            ImageLoader.getInstance().displayImage(url, viewHolder.image);
+        } catch (Exception e) {
+            Log.e("!!!!" + url, e.toString());
+        }
     }
 
     @Override

@@ -58,7 +58,10 @@ public class MessageProvider extends ContentProvider {
 
         Cursor cursor = dbHelper.getWritableDatabase()
                 .query(VKTestDBHelper.TABLE_MESSAGE + " left join " + VKTestDBHelper.TABLE_PARTICIPANT
-                        + " on message.userId =  PARTICIPANT.userId ", projection, selection, selectionArgs, null,
+                        + " on " + VKTestDBHelper.TABLE_MESSAGE.concat(".").concat(VKTestDBHelper
+                                .COLUMN_USER_ID) + " = " + VKTestDBHelper.TABLE_PARTICIPANT
+                                .concat(".").concat(VKTestDBHelper.COLUMN_USER_ID),
+                        projection, selection, selectionArgs, null,
                         null, sort, limit);
         cursor.setNotificationUri(getContext().getContentResolver(), uri);
         return cursor;

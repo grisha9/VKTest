@@ -10,7 +10,7 @@ import android.widget.CursorAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.squareup.picasso.Picasso;
+import com.nostra13.universalimageloader.core.ImageLoader;
 import com.vk.sdk.api.model.VKApiMessage;
 import com.vk.sdk.api.model.VKApiPhoto;
 
@@ -111,9 +111,7 @@ public class MessageCursorAdapter extends CursorAdapter {
         viewHolder.date.setText(dateFormat.format(new Date(message.date * 1000)));
         if (viewHolder.avatar != null) {
             try {
-                Picasso.with(context)
-                        .load(message.getUserPhoto())
-                        .into(viewHolder.avatar);
+                ImageLoader.getInstance().displayImage(message.getUserPhoto(), viewHolder.avatar);
             } catch (Exception e) {
                 Log.e("!!!!" + message.getUserPhoto(), e.toString());
             }
@@ -129,9 +127,8 @@ public class MessageCursorAdapter extends CursorAdapter {
                 VKApiPhoto attachment = (VKApiPhoto) message.attachments.get(i);
                 viewHolder.imageViews.get(i).setVisibility(View.VISIBLE);
                 try {
-                    Picasso.with(context)
-                            .load(attachment.photo_130)
-                            .into(viewHolder.imageViews.get(i));
+                    ImageLoader.getInstance().displayImage(attachment.photo_130,
+                            viewHolder.imageViews.get(i));
                 } catch (Exception e) {
                     Log.e("!!!!" + message.getUserPhoto(), e.toString());
                 }

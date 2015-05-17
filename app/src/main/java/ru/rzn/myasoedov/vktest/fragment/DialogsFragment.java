@@ -12,6 +12,7 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.util.Log;
 import android.view.View;
 import android.widget.CursorAdapter;
 import android.widget.ListView;
@@ -26,6 +27,7 @@ import ru.rzn.myasoedov.vktest.service.VKService;
  * Created by grisha on 11.05.15.
  */
 public class DialogsFragment extends SwipeRefreshListFragment implements LoaderManager.LoaderCallbacks<Cursor> {
+    private static final String TAG = DialogsFragment.class.getSimpleName();
     private BroadcastReceiver receiver;
     private Parcelable listViewState;
 
@@ -78,6 +80,7 @@ public class DialogsFragment extends SwipeRefreshListFragment implements LoaderM
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
+        listViewState = getListView().onSaveInstanceState();
         VKChat chat = ((DialogCursorAdapter) getListAdapter()).getItem(position);
         getActivity().getSupportFragmentManager()
                 .beginTransaction()
@@ -116,7 +119,11 @@ public class DialogsFragment extends SwipeRefreshListFragment implements LoaderM
 
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-      //  outState.putParcelable(LIST_INSTANCE_STATE, getListView().onSaveInstanceState());
+        try {
+            outState.putParcelable(LIST_INSTANCE_STATE, getListView().onSaveInstanceState());
+        } catch (Exception e) {
+            Log.i(TAG, e.getMessage());
+        }
     }
 
 }
