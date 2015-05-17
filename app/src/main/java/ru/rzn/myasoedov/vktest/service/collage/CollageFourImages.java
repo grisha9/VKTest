@@ -4,10 +4,12 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 
-import com.nostra13.universalimageloader.core.ImageLoader;
-
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 
+import ru.rzn.myasoedov.vktest.VKTest;
 import ru.rzn.myasoedov.vktest.dto.VKUser;
 
 /**
@@ -21,11 +23,18 @@ public class CollageFourImages extends Collage {
     }
 
     @Override
-    public Bitmap getCollageBitmap() {
-        Bitmap bitmap1 = ImageLoader.getInstance().loadImageSync(users.get(0).photo_50);
-        Bitmap bitmap2 = ImageLoader.getInstance().loadImageSync(users.get(1).photo_50);
-        Bitmap bitmap3 = ImageLoader.getInstance().loadImageSync(users.get(2).photo_50);
-        Bitmap bitmap4 = ImageLoader.getInstance().loadImageSync(users.get(3).photo_50);
+    public Bitmap getCollageBitmap() throws Exception{
+        List<Callable<Bitmap>> callables = new ArrayList<>();
+        for(VKUser user : users) {
+            callables.add(new BitmapCallable(user.photo_50));
+        }
+        List<Future<Bitmap>> futures = VKTest.getExecutors().invokeAll(callables);
+
+        Bitmap bitmap1 = futures.get(0).get();
+        Bitmap bitmap2 = futures.get(1).get();
+        Bitmap bitmap3 = futures.get(2).get();
+        Bitmap bitmap4 = futures.get(3).get();
+
 
         Bitmap collage = Bitmap.createBitmap(bitmap1.getWidth() * 2 + DELTA_DELIMITER,
                 bitmap1.getHeight() * 2 + DELTA_DELIMITER, Bitmap.Config.ARGB_8888);

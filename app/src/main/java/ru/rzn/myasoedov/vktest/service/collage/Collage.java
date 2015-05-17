@@ -24,13 +24,13 @@ public abstract class Collage {
      *
      * @return bitmap
      */
-    protected abstract Bitmap getCollageBitmap();
+    protected abstract Bitmap getCollageBitmap() throws Exception;
 
     /**
      * get path to collage file
      * @return path to file
      */
-    public String getCollage() {
+    public String getCollage() throws Exception {
         Bitmap collage = getCollageBitmap();
         ContextWrapper contextWrapper = new ContextWrapper(VKTest.getContext());
         File directory = contextWrapper.getDir(IMAGE_DIR, Context.MODE_PRIVATE);

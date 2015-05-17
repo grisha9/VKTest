@@ -19,5 +19,7 @@
     <string name="logout">Logout</string>
 
     <string name="no_dialogs">No dialogs</string>
+    <string name="dialogs_title">Dialogs list</string>
+    <string name="participants">participants</string>
 
 </resources>

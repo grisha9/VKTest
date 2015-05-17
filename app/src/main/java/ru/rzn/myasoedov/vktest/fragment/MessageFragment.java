@@ -1,6 +1,5 @@
 package ru.rzn.myasoedov.vktest.fragment;
 
-import android.app.ActionBar;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -12,29 +11,33 @@ import android.support.v4.app.ListFragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarActivity;
 import android.view.View;
 import android.widget.CursorAdapter;
 
 import com.vk.sdk.api.model.VKApiMessage;
 
+import ru.rzn.myasoedov.vktest.R;
 import ru.rzn.myasoedov.vktest.adapter.EndlessScrollListener;
 import ru.rzn.myasoedov.vktest.adapter.MessageCursorAdapter;
 import ru.rzn.myasoedov.vktest.db.MessageProvider;
+import ru.rzn.myasoedov.vktest.dto.VKChat;
 import ru.rzn.myasoedov.vktest.service.VKService;
 
 /**
  * Created by grisha on 13.05.15.
  */
 public class MessageFragment extends ListFragment implements LoaderManager.LoaderCallbacks<Cursor> {
-    public static final String CHAT_ID = "chatId";
+    public static final String CHAT = "chat";
     public static final int ITEM_ON_PAGE = 50;
-    private int chatId;
+    private VKChat chat;
     private BroadcastReceiver receiver;
     private EndlessScrollListener scrollListener;
 
-    public static MessageFragment newInstance(int chatId) {
+    public static MessageFragment newInstance(VKChat chat) {
         Bundle bundle = new Bundle();
-        bundle.putInt(CHAT_ID, chatId);
+        bundle.putParcelable(CHAT, chat);
 
         MessageFragment messageFragment = new MessageFragment();
         messageFragment.setArguments(bundle);
@@ -45,7 +48,7 @@ public class MessageFragment extends ListFragment implements LoaderManager.Loade
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
-        chatId = getArguments().getInt(CHAT_ID);
+        chat = getArguments().getParcelable(CHAT);
     }
 
     @Override
@@ -72,9 +75,12 @@ public class MessageFragment extends ListFragment implements LoaderManager.Loade
     }
 
     private void prepareActionBar() {
-        ActionBar actionBar = getActivity().getActionBar();
+        ActionBar actionBar = ((ActionBarActivity) getActivity()).getSupportActionBar();
         if (actionBar != null) {
-            actionBar.setTitle('1');
+            actionBar.setTitle(chat.title);
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setSubtitle((chat.getUsers().size() + 1) + " "
+                    + getString(R.string.participants));
         }
     }
 
@@ -89,7 +95,7 @@ public class MessageFragment extends ListFragment implements LoaderManager.Loade
                 @Override
                 public void onLoadMore(int totalItemsCount) {
                     VKApiMessage message = ((MessageCursorAdapter) getListAdapter()).getItem(0);
-                    VKService.getMessageByChatId(chatId, false, ITEM_ON_PAGE, message.getId());
+                    VKService.getMessageByChatId(chat.getId(), false, ITEM_ON_PAGE, message.getId());
                 }
             };
         }
@@ -104,14 +110,11 @@ public class MessageFragment extends ListFragment implements LoaderManager.Loade
 
     @Override
     public Loader onCreateLoader(int i, Bundle bundle) {
-//        Uri uri = MessageProvider.MESSAGE_CONTENT_URI.buildUpon()
-//                .appendQueryParameter(MessageProvider.PARAMETER_LIMIT, String.valueOf(ITEM_ON_PAGE))
-//                .build();
         switch (i) {
             case MessageProvider.URI_ALL_MESSAGE:
-                VKService.getMessageByChatId(chatId, true, ITEM_ON_PAGE, null);
+                VKService.getMessageByChatId(chat.getId(), true, ITEM_ON_PAGE, null);
                 return new CursorLoader(getActivity(), MessageProvider.MESSAGE_CONTENT_URI, null,
-                        MessageProvider.QUERY_SELECTION, new String[]{String.valueOf(chatId)}, null);
+                        MessageProvider.QUERY_SELECTION, new String[]{String.valueOf(chat.getId())}, null);
             default:
                 return null;
         }

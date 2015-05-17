@@ -1,6 +1,5 @@
 package ru.rzn.myasoedov.vktest.fragment;
 
-import android.app.ActionBar;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -12,6 +11,8 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.CursorAdapter;
@@ -35,6 +36,8 @@ public class DialogsFragment extends SwipeRefreshListFragment implements LoaderM
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         setEmptyText(getString(R.string.no_dialogs));
+        getListView().setDivider(null);
+        getListView().setDividerHeight(0);
         if (savedInstanceState != null) {
             listViewState = savedInstanceState.getParcelable(LIST_INSTANCE_STATE);
         }
@@ -70,9 +73,11 @@ public class DialogsFragment extends SwipeRefreshListFragment implements LoaderM
     }
 
     private void prepareActionBar() {
-        ActionBar actionBar = getActivity().getActionBar();
+        ActionBar actionBar = ((ActionBarActivity) getActivity()).getSupportActionBar();
         if (actionBar != null) {
-            actionBar.setTitle(R.string.app_name);
+            actionBar.setTitle(R.string.dialogs_title);
+            actionBar.setSubtitle("");
+            actionBar.setDisplayHomeAsUpEnabled(false);
         }
     }
 
@@ -84,7 +89,7 @@ public class DialogsFragment extends SwipeRefreshListFragment implements LoaderM
         VKChat chat = ((DialogCursorAdapter) getListAdapter()).getItem(position);
         getActivity().getSupportFragmentManager()
                 .beginTransaction()
-                .replace(R.id.container, MessageFragment.newInstance(chat.getId()))
+                .replace(R.id.container, MessageFragment.newInstance(chat))
                 .addToBackStack(null)
                 .commit();
     }

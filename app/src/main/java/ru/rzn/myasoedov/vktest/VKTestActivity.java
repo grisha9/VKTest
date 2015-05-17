@@ -30,7 +30,7 @@ public class VKTestActivity extends ActionBarActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-                getFragmentManager().popBackStack();
+                getSupportFragmentManager().popBackStack();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

@@ -146,7 +146,7 @@ public class SyncService extends IntentService {
     }
 
     private boolean collageUserNotActual(List<Integer> activeUsers, List<Integer> collageUsers) {
-        if (collageUsers.isEmpty()) {
+        if (collageUsers.isEmpty() || collageUsers.size() != activeUsers.size()) {
             return true;
         }
         for(Integer userId : collageUsers) {
