@@ -82,23 +82,23 @@ public class VKService {
             @Override
             public void onComplete(VKResponse response) {
                 super.onComplete(response);
-                VKList<VKUser> vkApiUsers = new VKList<VKUser>();
+                VKList<VKUser> allChatUsers = new VKList<VKUser>();
                 Intent syncDialogAvatarIntent = new Intent(SyncService.ACTION_SYNC_DIALOG_AVATAR);
                 for (Integer id : chatIds) {
                     try {
-                        VKList<VKUser> vkChatUsers = new VKList<>();
-                        vkChatUsers.fill(response.json.getJSONObject("response")
+                        VKList<VKUser> chatUsers = new VKList<>();
+                        chatUsers.fill(response.json.getJSONObject("response")
                                 .getJSONArray(id.toString()), VKUser.class);
-                        vkApiUsers.addAll(vkChatUsers);
+                        allChatUsers.addAll(chatUsers);
 
-                        syncDialogAvatarIntent.putExtra(id.toString(), vkApiUsers);
+                        syncDialogAvatarIntent.putExtra(id.toString(), chatUsers);
                     } catch (JSONException e) {
                         Log.e(SYNC_TAG, e.getMessage());
                     }
                 }
-                if (!vkApiUsers.isEmpty()) {
+                if (!allChatUsers.isEmpty()) {
                     Intent intent = new Intent(SyncService.ACTION_SYNC_PARTICIPANT);
-                    intent.putExtra(SyncService.MODEL_OBJECT, vkApiUsers);
+                    intent.putExtra(SyncService.MODEL_OBJECT, allChatUsers);
                     VKTest.getContext().startService(intent);
 
                     VKTest.getContext().startService(syncDialogAvatarIntent);

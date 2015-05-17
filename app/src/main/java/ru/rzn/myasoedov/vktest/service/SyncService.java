@@ -10,9 +10,11 @@ import com.vk.sdk.api.model.VKApiMessage;
 import com.vk.sdk.api.model.VKList;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -40,6 +42,7 @@ public class SyncService extends IntentService {
     public static final String MODEL_OBJECT = "model-object";
     public static final String DELETE_OLD = "delete-old";
     public static final String CHAT_ID = "chat-id";
+    public static final int COLLAGE_MAX_USER = 4;
 
     private Lock lock = new ReentrantLock();
 
@@ -103,11 +106,20 @@ public class SyncService extends IntentService {
                     VKList<VKUser> users = intent.getParcelableExtra(String.valueOf(chat.id));
                     users = (users != null) ? users : new VKList<VKUser>();
 
-                    if (collageUserNotActual(chat.getUsers(), chat.getCollageUsers())) {
-                        List<VKUser> collageUsers = users.size() > 4 ? users.subList(0, 3) : users;
+                    if (!users.isEmpty()
+                            && collageUserNotActual(chat.getUsers(), chat.getCollageUsers())) {
+                        Map<Integer, VKUser> userMap = new HashMap<>();
+                        List<VKUser> collageUsers = new LinkedList<>();
                         List<Integer> collageUserIds = new LinkedList<>();
-                        for(VKUser user : collageUsers) {
-                            collageUserIds.add(user.getId());
+                        for (VKUser user : users) {
+                            userMap.put(user.id, user);
+                        }
+                        for (Integer id : chat.getUsers()) {
+                            VKUser user = userMap.get(id);
+                            if (user != null && collageUsers.size() <= COLLAGE_MAX_USER) {
+                                collageUsers.add(user);
+                                collageUserIds.add(id);
+                            }
                         }
 
                         try {
