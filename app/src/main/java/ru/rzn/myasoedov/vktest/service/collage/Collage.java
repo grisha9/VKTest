@@ -15,8 +15,9 @@ import ru.rzn.myasoedov.vktest.VKTest;
  * Created by grisha on 16.05.15.
  */
 public abstract class Collage {
-    public static final String IMAGE_DIR = "imageDir";
-    public static final String FILE_PREFIX = "file://";
+    protected static final int DELTA_DELIMITER = 1;
+    private static final String IMAGE_DIR = "imageDir";
+    private static final String FILE_PREFIX = "file://";
 
     /**
      * get collage bitmap

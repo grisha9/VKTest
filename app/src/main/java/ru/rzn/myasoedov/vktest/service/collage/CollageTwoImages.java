@@ -25,21 +25,21 @@ public class CollageTwoImages extends Collage {
         Bitmap bitmap1 = ImageLoader.getInstance().loadImageSync(users.get(0).photo_50);
         Bitmap bitmap2 = ImageLoader.getInstance().loadImageSync(users.get(1).photo_50);
 
+        Bitmap collage = Bitmap.createBitmap(bitmap1.getWidth() + DELTA_DELIMITER,
+                bitmap1.getHeight(), Bitmap.Config.ARGB_8888);
+
         int startX = bitmap1.getWidth() / 4;
         int halfWeight = bitmap1.getWidth() / 2;
         bitmap1 = Bitmap.createBitmap(bitmap1, startX, 0, halfWeight, bitmap1.getHeight());
         bitmap2 = Bitmap.createBitmap(bitmap2, startX, 0, halfWeight, bitmap2.getHeight());
 
-        Bitmap collage = Bitmap.createBitmap(bitmap1.getWidth(), bitmap1.getHeight(),
-                Bitmap.Config.ARGB_8888);
-
         Canvas canvas = new Canvas(collage);
         Paint paint = new Paint();
         canvas.drawBitmap(bitmap1, 0 , 0, paint);
-        canvas.drawBitmap(bitmap2, bitmap1.getWidth() , 0, paint);
+        canvas.drawBitmap(bitmap2, bitmap1.getWidth() + DELTA_DELIMITER, 0, paint);
 
         bitmap1.recycle();
         bitmap2.recycle();
-        return null;
+        return collage;
     }
 }

@@ -27,15 +27,16 @@ public class CollageFourImages extends Collage {
         Bitmap bitmap3 = ImageLoader.getInstance().loadImageSync(users.get(2).photo_50);
         Bitmap bitmap4 = ImageLoader.getInstance().loadImageSync(users.get(3).photo_50);
 
-        Bitmap collage = Bitmap.createBitmap(bitmap1.getWidth() * 2,
-                bitmap1.getHeight() * 2, Bitmap.Config.ARGB_8888);
+        Bitmap collage = Bitmap.createBitmap(bitmap1.getWidth() * 2 + DELTA_DELIMITER,
+                bitmap1.getHeight() * 2 + DELTA_DELIMITER, Bitmap.Config.ARGB_8888);
 
         Canvas canvas = new Canvas(collage);
         Paint paint = new Paint();
         canvas.drawBitmap(bitmap1, 0 , 0, paint);
-        canvas.drawBitmap(bitmap2, bitmap1.getWidth() , 0, paint);
-        canvas.drawBitmap(bitmap3, 0 , bitmap1.getHeight(), paint);
-        canvas.drawBitmap(bitmap4, bitmap1.getWidth() , bitmap1.getHeight(), paint);
+        canvas.drawBitmap(bitmap2, bitmap1.getWidth() + DELTA_DELIMITER, 0, paint);
+        canvas.drawBitmap(bitmap3, 0 , bitmap1.getHeight() + DELTA_DELIMITER, paint);
+        canvas.drawBitmap(bitmap4, bitmap1.getWidth() + DELTA_DELIMITER,
+                bitmap1.getHeight() + DELTA_DELIMITER, paint);
 
         bitmap1.recycle();
         bitmap2.recycle();

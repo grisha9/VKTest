@@ -26,8 +26,8 @@ public class CollageThreeImages extends Collage {
         Bitmap bitmap2 = ImageLoader.getInstance().loadImageSync(users.get(1).photo_50);
         Bitmap bitmap3 = ImageLoader.getInstance().loadImageSync(users.get(2).photo_50);
 
-        Bitmap collage = Bitmap.createBitmap(bitmap1.getWidth() * 2,
-                bitmap1.getHeight() * 2, Bitmap.Config.ARGB_8888);
+        Bitmap collage = Bitmap.createBitmap(bitmap1.getWidth() + DELTA_DELIMITER,
+                bitmap1.getHeight() + DELTA_DELIMITER, Bitmap.Config.ARGB_8888);
 
         bitmap1 = Bitmap.createBitmap(bitmap1, bitmap1.getWidth() / 4, 0, bitmap1.getWidth() / 2,
                 bitmap1.getHeight());
@@ -41,8 +41,9 @@ public class CollageThreeImages extends Collage {
         Canvas canvas = new Canvas(collage);
         Paint paint = new Paint();
         canvas.drawBitmap(bitmap1, 0 , 0, paint);
-        canvas.drawBitmap(bitmap2, bitmap1.getWidth() , 0, paint);
-        canvas.drawBitmap(bitmap3, bitmap1.getWidth() , bitmap2.getHeight(), paint);
+        canvas.drawBitmap(bitmap2, bitmap1.getWidth() + DELTA_DELIMITER , 0, paint);
+        canvas.drawBitmap(bitmap3, bitmap1.getWidth() + DELTA_DELIMITER,
+                bitmap2.getHeight() + DELTA_DELIMITER, paint);
 
 
         bitmap1.recycle();
