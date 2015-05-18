@@ -13,9 +13,12 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.CursorAdapter;
+import android.widget.ImageView;
 
+import com.nostra13.universalimageloader.core.ImageLoader;
 import com.vk.sdk.api.model.VKApiMessage;
 
 import ru.rzn.myasoedov.vktest.R;
@@ -30,6 +33,8 @@ import ru.rzn.myasoedov.vktest.service.VKService;
  */
 public class MessageFragment extends ListFragment implements LoaderManager.LoaderCallbacks<Cursor> {
     public static final String CHAT = "chat";
+    public static final String CHAT_ID = "chatId";
+    public static final String CUSTOM_PHOTO_URL = "customPhotoUrl";
     public static final int ITEM_ON_PAGE = 50;
     private VKChat chat;
     private BroadcastReceiver receiver;
@@ -49,6 +54,7 @@ public class MessageFragment extends ListFragment implements LoaderManager.Loade
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
         chat = getArguments().getParcelable(CHAT);
+        getActivity().getWindow().setBackgroundDrawableResource(R.drawable.chat_gradient);
     }
 
     @Override
@@ -64,13 +70,18 @@ public class MessageFragment extends ListFragment implements LoaderManager.Loade
                     case VKService.ACTION_MESSAGE_SYNC_ERROR:
                         scrollListener.setLoading(false);
                         break;
-                    case VKService.ACTION_MESSAGE_SYNC_FINISH:
+                    case VKService.ACTION_DIALOG_AVATAR_SYNC:
+                        if (intent.getIntExtra(CHAT_ID, -1) == chat.getId()) {
+                            chat.setCustomPhotoUrl(intent.getStringExtra(CUSTOM_PHOTO_URL));
+                            setChatAvatar();
+                        }
                         break;
                 }
             }
         };
-        IntentFilter filter = new IntentFilter(VKService.ACTION_MESSAGE_SYNC_FINISH);
+        IntentFilter filter = new IntentFilter();
         filter.addAction(VKService.ACTION_MESSAGE_SYNC_ERROR);
+        filter.addAction(VKService.ACTION_DIALOG_AVATAR_SYNC);
         getActivity().registerReceiver(receiver, filter);
     }
 
@@ -81,7 +92,16 @@ public class MessageFragment extends ListFragment implements LoaderManager.Loade
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setSubtitle((chat.getUsers().size() + 1) + " "
                     + getString(R.string.participants));
+            setChatAvatar();
         }
+    }
+
+    private void setChatAvatar() {
+        ImageView chatAvatar = (ImageView) getActivity().findViewById(R.id.chat_avatar);
+        chatAvatar.setVisibility(View.VISIBLE);
+        String url = TextUtils.isEmpty(chat.getPhotoUrl()) ? chat.getCustomPhotoUrl()
+                : chat.getPhotoUrl();
+        ImageLoader.getInstance().displayImage(url, chatAvatar);
     }
 
     @Override
@@ -106,6 +126,8 @@ public class MessageFragment extends ListFragment implements LoaderManager.Loade
     public void onStop() {
         super.onStop();
         getActivity().unregisterReceiver(receiver);
+        View chatAvatar = getActivity().findViewById(R.id.chat_avatar);
+        chatAvatar.setVisibility(View.GONE);
     }
 
     @Override

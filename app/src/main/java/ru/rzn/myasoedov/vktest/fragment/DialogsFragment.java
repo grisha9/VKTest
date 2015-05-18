@@ -6,14 +6,12 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.CursorAdapter;
 import android.widget.ListView;
@@ -30,7 +28,13 @@ import ru.rzn.myasoedov.vktest.service.VKService;
 public class DialogsFragment extends SwipeRefreshListFragment implements LoaderManager.LoaderCallbacks<Cursor> {
     private static final String TAG = DialogsFragment.class.getSimpleName();
     private BroadcastReceiver receiver;
-    private Parcelable listViewState;
+
+    public static DialogsFragment newInstance() {
+        Bundle bundle = new Bundle();
+        DialogsFragment dialogsFragment = new DialogsFragment();
+        dialogsFragment.setArguments(bundle);
+        return dialogsFragment;
+    }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
@@ -38,9 +42,7 @@ public class DialogsFragment extends SwipeRefreshListFragment implements LoaderM
         setEmptyText(getString(R.string.no_dialogs));
         getListView().setDivider(null);
         getListView().setDividerHeight(0);
-        if (savedInstanceState != null) {
-            listViewState = savedInstanceState.getParcelable(LIST_INSTANCE_STATE);
-        }
+        getActivity().getWindow().setBackgroundDrawableResource(R.color.background);
         VKService.getDialogs();
         setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -85,7 +87,6 @@ public class DialogsFragment extends SwipeRefreshListFragment implements LoaderM
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
-        listViewState = getListView().onSaveInstanceState();
         VKChat chat = ((DialogCursorAdapter) getListAdapter()).getItem(position);
         getActivity().getSupportFragmentManager()
                 .beginTransaction()
@@ -109,9 +110,6 @@ public class DialogsFragment extends SwipeRefreshListFragment implements LoaderM
     public void onLoadFinished(Loader loader, Cursor cursor) {
         if (getListAdapter() == null) {
             setListAdapter(new DialogCursorAdapter(getActivity(), cursor, 0));
-            if (listViewState != null) {
-                getListView().onRestoreInstanceState(listViewState);
-            }
         } else {
             ((CursorAdapter) getListAdapter()).swapCursor(cursor);
         }
@@ -120,15 +118,6 @@ public class DialogsFragment extends SwipeRefreshListFragment implements LoaderM
     @Override
     public void onLoaderReset(Loader loader) {
 
-    }
-
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        try {
-            outState.putParcelable(LIST_INSTANCE_STATE, getListView().onSaveInstanceState());
-        } catch (Exception e) {
-            Log.i(TAG, e.getMessage());
-        }
     }
 
 }

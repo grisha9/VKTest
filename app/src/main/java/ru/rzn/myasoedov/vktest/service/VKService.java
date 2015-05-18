@@ -28,7 +28,7 @@ import ru.rzn.myasoedov.vktest.dto.VKUser;
  */
 public class VKService {
     public static final String ACTION_DIALOG_SYNC_FINISH = "ru.rzn.myasoedov.vktest.ACTION_DIALOG_SYNC_FINISH";
-    public static final String ACTION_MESSAGE_SYNC_FINISH = "ru.rzn.myasoedov.vktest.ACTION_MESSAGE_SYNC_FINISH";
+    public static final String ACTION_DIALOG_AVATAR_SYNC = "ru.rzn.myasoedov.vktest.ACTION_DIALOG_AVATAR_SYNC";
     public static final String ACTION_MESSAGE_SYNC_ERROR = "ru.rzn.myasoedov.vktest.ACTION_MESSAGE_SYNC_ERROR";
     private static final String SYNC_TAG = VKService.class.getName();
     public static final int MESSAGE_COUNT_FIRST_UPDATE = 100;
@@ -138,7 +138,6 @@ public class VKService {
                     intent.putExtra(SyncService.MODEL_OBJECT, (Parcelable) response.parsedModel);
                     VKTest.getContext().startService(intent);
 
-                    sendReguestFinishIntent(ACTION_MESSAGE_SYNC_FINISH);
                 }
             }
 

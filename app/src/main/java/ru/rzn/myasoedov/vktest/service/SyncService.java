@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import ru.rzn.myasoedov.vktest.VKTest;
 import ru.rzn.myasoedov.vktest.db.DialogProvider;
 import ru.rzn.myasoedov.vktest.db.MessageProvider;
 import ru.rzn.myasoedov.vktest.db.ParticipantProvider;
@@ -27,6 +28,7 @@ import ru.rzn.myasoedov.vktest.dto.VKMessage;
 import ru.rzn.myasoedov.vktest.dto.VKMessageWrapper;
 import ru.rzn.myasoedov.vktest.dto.VKUser;
 import ru.rzn.myasoedov.vktest.dto.VKUserWrapper;
+import ru.rzn.myasoedov.vktest.fragment.MessageFragment;
 import ru.rzn.myasoedov.vktest.service.collage.CollageFactory;
 
 
@@ -95,68 +97,6 @@ public class SyncService extends IntentService {
         }
     }
 
-    private void syncDialogAvatar(Intent intent) {
-        Cursor cursor = null;
-        if (lock.tryLock()) {
-            try {
-                cursor = getApplicationContext().getContentResolver().query(DialogProvider
-                        .DIALOG_WITHOUT_IMAGE_URI, null, null, null, null);
-                while (cursor.moveToNext()) {
-                    VKChat chat = VKChatWrapper.getChatFromCursor(cursor);
-                    VKList<VKUser> users = intent.getParcelableExtra(String.valueOf(chat.id));
-                    users = (users != null) ? users : new VKList<VKUser>();
-
-                    if (!users.isEmpty()
-                            && collageUserNotActual(chat.getUsers(), chat.getCollageUsers())) {
-                        Map<Integer, VKUser> userMap = new HashMap<>();
-                        List<VKUser> collageUsers = new LinkedList<>();
-                        List<Integer> collageUserIds = new LinkedList<>();
-                        for (VKUser user : users) {
-                            userMap.put(user.id, user);
-                        }
-                        for (Integer id : chat.getUsers()) {
-                            VKUser user = userMap.get(id);
-                            if (user != null && collageUsers.size() <= COLLAGE_MAX_USER) {
-                                collageUsers.add(user);
-                                collageUserIds.add(id);
-                            }
-                        }
-
-                        try {
-                            String collage = CollageFactory.getInstance(collageUsers).getCollage();
-                            chat.setCustomPhotoUrl(collage);
-                            chat.setCollageUsers(collageUserIds);
-                            getApplicationContext().getContentResolver().update(
-                                    DialogProvider.DIALOG_CONTENT_URI,
-                                    VKChatWrapper.getContentValuesForUpdateAvatar(chat),
-                                    DialogProvider.UPDATE_WHERE_CLAUSE,
-                                    new String[] {String.valueOf(chat.getId())});
-                        } catch (Exception e) {
-                            Log.e(TAG, e.getMessage(), e);
-                        }
-                    }
-                }
-            } finally {
-                lock.unlock();
-                if (cursor != null) {
-                    cursor.close();
-                }
-            }
-        }
-    }
-
-    private boolean collageUserNotActual(List<Integer> activeUsers, List<Integer> collageUsers) {
-        if (collageUsers.isEmpty() || collageUsers.size() != activeUsers.size()) {
-            return true;
-        }
-        for(Integer userId : collageUsers) {
-            if (!activeUsers.contains(userId)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     private void syncParticipant(VKList<VKUser> users) {
         HashSet<VKUser> userSet = new HashSet<>();
         for(VKUser user : users) {
@@ -214,4 +154,74 @@ public class SyncService extends IntentService {
         return vkMessages;
     }
 
+    private void syncDialogAvatar(Intent intent) {
+        Cursor cursor = null;
+        if (lock.tryLock()) {
+            try {
+                cursor = getApplicationContext().getContentResolver().query(DialogProvider
+                        .DIALOG_WITHOUT_IMAGE_URI, null, null, null, null);
+                while (cursor.moveToNext()) {
+                    VKChat chat = VKChatWrapper.getChatFromCursor(cursor);
+                    VKList<VKUser> users = intent.getParcelableExtra(String.valueOf(chat.id));
+                    users = (users != null) ? users : new VKList<VKUser>();
+
+                    if (!users.isEmpty()
+                            && collageUserNotActual(chat.getUsers(), chat.getCollageUsers())) {
+                        Map<Integer, VKUser> userMap = new HashMap<>();
+                        List<VKUser> collageUsers = new LinkedList<>();
+                        List<Integer> collageUserIds = new LinkedList<>();
+                        for (VKUser user : users) {
+                            userMap.put(user.id, user);
+                        }
+                        for (Integer id : chat.getUsers()) {
+                            VKUser user = userMap.get(id);
+                            if (user != null && collageUsers.size() <= COLLAGE_MAX_USER) {
+                                collageUsers.add(user);
+                                collageUserIds.add(id);
+                            }
+                        }
+
+                        try {
+                            String collage = CollageFactory.getInstance(collageUsers).getCollage();
+                            chat.setCustomPhotoUrl(collage);
+                            chat.setCollageUsers(collageUserIds);
+                            getApplicationContext().getContentResolver().update(
+                                    DialogProvider.DIALOG_CONTENT_URI,
+                                    VKChatWrapper.getContentValuesForUpdateAvatar(chat),
+                                    DialogProvider.UPDATE_WHERE_CLAUSE,
+                                    new String[] {String.valueOf(chat.getId())});
+
+                        } catch (Exception e) {
+                            Log.e(TAG, e.getMessage(), e);
+                        }
+                        sendAvatarSyncIntent(chat);
+                    }
+                }
+            } finally {
+                lock.unlock();
+                if (cursor != null) {
+                    cursor.close();
+                }
+            }
+        }
+    }
+
+    private boolean collageUserNotActual(List<Integer> activeUsers, List<Integer> collageUsers) {
+        if (collageUsers.isEmpty() || collageUsers.size() != activeUsers.size()) {
+            return true;
+        }
+        for(Integer userId : collageUsers) {
+            if (!activeUsers.contains(userId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void sendAvatarSyncIntent(VKChat chat) {
+        Intent dataIntent = new Intent(VKService.ACTION_DIALOG_AVATAR_SYNC);
+        dataIntent.putExtra(MessageFragment.CHAT_ID, chat.getId());
+        dataIntent.putExtra(MessageFragment.CUSTOM_PHOTO_URL, chat.getCustomPhotoUrl());
+        VKTest.getContext().sendBroadcast(dataIntent);
+    }
 }
