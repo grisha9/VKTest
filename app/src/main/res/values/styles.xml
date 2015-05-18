@@ -7,4 +7,12 @@
         <item name="android:windowNoTitle">true</item>
     </style>
 
+    <style name="WhiteTextDate">
+        <item name="android:textColor">@color/data_text_color</item>
+    </style>
+
+    <style name="WhiteText" parent="Base.TextAppearance.AppCompat.Body1">
+        <item name="android:textColor">@color/white_text_color</item>
+    </style>
+
 </resources>

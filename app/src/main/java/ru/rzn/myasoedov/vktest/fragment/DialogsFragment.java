@@ -42,7 +42,7 @@ public class DialogsFragment extends SwipeRefreshListFragment implements LoaderM
         setEmptyText(getString(R.string.no_dialogs));
         getListView().setDivider(null);
         getListView().setDividerHeight(0);
-        getActivity().getWindow().setBackgroundDrawableResource(R.color.background);
+        getActivity().getWindow().setBackgroundDrawableResource(R.color.background_dialog);
         VKService.getDialogs();
         setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
