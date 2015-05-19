@@ -18,7 +18,7 @@
 
     <TextView
         android:id="@+id/message"
-        android:background="@drawable/out"
+        android:background="@drawable/out_first"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginRight="5dp"

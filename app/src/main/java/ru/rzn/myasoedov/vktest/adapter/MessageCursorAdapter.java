@@ -2,6 +2,7 @@ package ru.rzn.myasoedov.vktest.adapter;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,7 +12,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
-import com.vk.sdk.api.model.VKApiMessage;
 import com.vk.sdk.api.model.VKApiPhoto;
 
 import java.text.SimpleDateFormat;
@@ -28,9 +28,13 @@ import ru.rzn.myasoedov.vktest.dto.VKMessageWrapper;
  */
 public class MessageCursorAdapter extends CursorAdapter {
     private static final int MY_TEXT_MESSAGE = 0;
-    private static final int MY_PHOTO_MESSAGE = 1;
-    private static final int TEXT_MESSAGE = 2;
-    private static final int PHOTO_MESSAGE = 3;
+    private static final int MY_TEXT_MESSAGE_FIRST = 1;
+    private static final int MY_PHOTO_MESSAGE = 2;
+    private static final int MY_PHOTO_MESSAGE_FIRST = 3;
+    private static final int TEXT_MESSAGE = 4;
+    private static final int TEXT_MESSAGE_FIRST = 5;
+    private static final int PHOTO_MESSAGE = 6;
+    private static final int PHOTO_MESSAGE_FIRST = 7;
     private static final int VIEW_HOLDER = 2123456789;
 
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm");
@@ -43,13 +47,21 @@ public class MessageCursorAdapter extends CursorAdapter {
 
     @Override
     public int getItemViewType(int position) {
-        VKApiMessage message = getItem(position);
-        if (message.out && !message.attachments.isEmpty()) {
+        VKMessage message = getItem(position);
+        if (message.out && !message.attachments.isEmpty() && message.isFirst()) {
+            return MY_PHOTO_MESSAGE_FIRST;
+        } else if (message.out && !message.attachments.isEmpty()) {
             return MY_PHOTO_MESSAGE;
+        } else if (message.out && message.isFirst()) {
+            return MY_TEXT_MESSAGE_FIRST;
         } else if (message.out) {
             return MY_TEXT_MESSAGE;
+        } else if (!message.attachments.isEmpty() && message.isFirst()) {
+            return PHOTO_MESSAGE_FIRST;
         } else if (!message.attachments.isEmpty()) {
             return PHOTO_MESSAGE;
+        } else if (message.isFirst()) {
+            return TEXT_MESSAGE_FIRST;
         } else {
             return TEXT_MESSAGE;
         }
@@ -57,7 +69,7 @@ public class MessageCursorAdapter extends CursorAdapter {
 
     @Override
     public int getViewTypeCount() {
-        return 4;
+        return 8;
     }
 
     @Override
@@ -69,13 +81,29 @@ public class MessageCursorAdapter extends CursorAdapter {
             case MY_TEXT_MESSAGE:
                 view = inflater.inflate(R.layout.message_item_my, parent, false);
                 break;
+            case MY_TEXT_MESSAGE_FIRST:
+                view = inflater.inflate(R.layout.message_item_my_first, parent, false);
+                break;
             case MY_PHOTO_MESSAGE:
                 view = inflater.inflate(R.layout.message_item_my_photo, parent, false);
+                initViewHolderImages(viewHolder, view);
+                break;
+            case MY_PHOTO_MESSAGE_FIRST:
+                view = inflater.inflate(R.layout.message_item_my_photo_first, parent, false);
                 initViewHolderImages(viewHolder, view);
                 break;
             case TEXT_MESSAGE:
                 view = inflater.inflate(R.layout.message_item, parent, false);
                 viewHolder.avatar = (ImageView) view.findViewById(R.id.avatar);
+                break;
+            case TEXT_MESSAGE_FIRST:
+                view = inflater.inflate(R.layout.message_item_first, parent, false);
+                viewHolder.avatar = (ImageView) view.findViewById(R.id.avatar);
+                break;
+            case PHOTO_MESSAGE_FIRST:
+                view = inflater.inflate(R.layout.message_item_photo_first, parent, false);
+                viewHolder.avatar = (ImageView) view.findViewById(R.id.avatar);
+                initViewHolderImages(viewHolder, view);
                 break;
             default:
                 view = inflater.inflate(R.layout.message_item_photo, parent, false);
@@ -117,11 +145,11 @@ public class MessageCursorAdapter extends CursorAdapter {
             }
         }
 
-        bindImages(context, viewHolder, message);
+        bindImages(viewHolder, message);
 
     }
 
-    private void bindImages(Context context, ViewHolder viewHolder, VKMessage message) {
+    private void bindImages(ViewHolder viewHolder, VKMessage message) {
         if (!message.attachments.isEmpty()) {
             for (int i = 0; i < message.attachments.size(); i++) {
                 VKApiPhoto attachment = (VKApiPhoto) message.attachments.get(i);
@@ -133,18 +161,25 @@ public class MessageCursorAdapter extends CursorAdapter {
                     Log.e("!!!!" + message.getUserPhoto(), e.toString());
                 }
             }
-            for(int i = message.attachments.size(); i < viewHolder.imageViews.size(); i++) {
+            for (int i = message.attachments.size(); i < viewHolder.imageViews.size(); i++) {
                 viewHolder.imageViews.get(i).setVisibility(View.GONE);
             }
+
+            viewHolder.message.setVisibility(TextUtils.isEmpty(message.body) ? View.GONE
+                    : View.VISIBLE);
         }
     }
 
     @Override
-    public VKApiMessage getItem(int position) {
+    public VKMessage getItem(int position) {
         Cursor cursor = (Cursor) super.getItem(position);
         return VKMessageWrapper.getMessageFromCursor(cursor);
     }
 
+    @Override
+    public boolean isEnabled(int position) {
+        return false;
+    }
 
     private class ViewHolder {
         TextView date;

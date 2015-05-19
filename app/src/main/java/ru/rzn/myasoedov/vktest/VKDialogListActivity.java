@@ -4,14 +4,13 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.MenuItem;
 
 import com.vk.sdk.VKUIHelper;
 
 import ru.rzn.myasoedov.vktest.fragment.DialogsFragment;
 
 
-public class VKTestActivity extends ActionBarActivity {
+public class VKDialogListActivity extends ActionBarActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,17 +25,6 @@ public class VKTestActivity extends ActionBarActivity {
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.container, DialogsFragment.newInstance())
                     .commit();
-        }
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                getSupportFragmentManager().popBackStack();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
         }
     }
 

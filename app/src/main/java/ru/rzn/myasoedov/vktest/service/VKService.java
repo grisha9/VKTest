@@ -60,7 +60,7 @@ public class VKService {
             public void onError(VKError error) {
                 super.onError(error);
                 sendReguestFinishIntent(ACTION_DIALOG_SYNC_FINISH);
-                Log.e(SYNC_TAG, error.errorMessage);
+                Log.e(SYNC_TAG, "get dialog error");
             }
         });
     }
@@ -82,7 +82,7 @@ public class VKService {
             @Override
             public void onComplete(VKResponse response) {
                 super.onComplete(response);
-                VKList<VKUser> allChatUsers = new VKList<VKUser>();
+                VKList<VKUser> allChatUsers = new VKList<>();
                 Intent syncDialogAvatarIntent = new Intent(SyncService.ACTION_SYNC_DIALOG_AVATAR);
                 for (Integer id : chatIds) {
                     try {
@@ -111,10 +111,6 @@ public class VKService {
                 Log.e(SYNC_TAG, error.errorMessage);
             }
         });
-    }
-
-    public static void getMessageByChatId(int chatId, boolean isDeleteOld) {
-        getMessageByChatId(chatId, isDeleteOld, MESSAGE_COUNT_FIRST_UPDATE, null);
     }
 
     public static void getMessageByChatId(final int chatId, final boolean isDeleteOld, int count,

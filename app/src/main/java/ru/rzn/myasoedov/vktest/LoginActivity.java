@@ -33,7 +33,6 @@ public class LoginActivity extends FragmentActivity {
             VKScope.FRIENDS,
             VKScope.PHOTOS,
             VKScope.MESSAGES,
-            VKScope.VIDEO
     };
 
     @Override
@@ -115,7 +114,7 @@ public class LoginActivity extends FragmentActivity {
         }
     };
     private void startTestActivity() {
-	    startActivity(new Intent(this, VKTestActivity.class));
+	    startActivity(new Intent(this, VKDialogListActivity.class));
     }
 
     public static class LoginFragment extends android.support.v4.app.Fragment {

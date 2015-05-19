@@ -2,13 +2,16 @@
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <!-- Customize your theme here. -->
         <item name="windowActionBar">false</item>
         <item name="android:windowNoTitle">true</item>
     </style>
 
+    <style name="ChatTheme" parent="AppTheme">
+        <item name="android:windowBackground">@drawable/chat_gradient</item>
+    </style>
+
     <style name="WhiteTextDate">
-        <item name="android:textColor">@color/data_text_color</item>
+        <item name="android:textColor">@color/date_text_color</item>
     </style>
 
     <style name="WhiteText" parent="Base.TextAppearance.AppCompat.Body1">

@@ -2,6 +2,7 @@ package ru.rzn.myasoedov.vktest.service.collage;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 
 import java.util.ArrayList;
@@ -47,6 +48,7 @@ public class CollageThreeImages extends Collage {
 
 
         Canvas canvas = new Canvas(collage);
+        canvas.drawColor(Color.WHITE);
         Paint paint = new Paint();
         canvas.drawBitmap(bitmap1, 0 , 0, paint);
         canvas.drawBitmap(bitmap2, bitmap1.getWidth() + DELTA_DELIMITER , 0, paint);

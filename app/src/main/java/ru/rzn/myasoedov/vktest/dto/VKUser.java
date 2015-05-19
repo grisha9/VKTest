@@ -20,9 +20,8 @@ public class VKUser extends VKApiUser implements Parcelable{
 
         VKUser vkUser = (VKUser) o;
 
-        if (id != vkUser.id) return false;
+        return id == vkUser.id;
 
-        return true;
     }
 
     @Override

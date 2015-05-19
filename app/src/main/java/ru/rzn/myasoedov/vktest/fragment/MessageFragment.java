@@ -54,7 +54,6 @@ public class MessageFragment extends ListFragment implements LoaderManager.Loade
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
         chat = getArguments().getParcelable(CHAT);
-        getActivity().getWindow().setBackgroundDrawableResource(R.drawable.chat_gradient);
     }
 
     @Override
@@ -155,6 +154,7 @@ public class MessageFragment extends ListFragment implements LoaderManager.Loade
 
     @Override
     public void onLoaderReset(Loader loader) {
+        ((CursorAdapter) getListAdapter()).swapCursor(null);
     }
 
     private void saveScrollPositionOnCursorChange(int newCursorItems, int oldCursorItems) {

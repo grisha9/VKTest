@@ -17,6 +17,7 @@ import android.widget.CursorAdapter;
 import android.widget.ListView;
 
 import ru.rzn.myasoedov.vktest.R;
+import ru.rzn.myasoedov.vktest.VKChatActivity;
 import ru.rzn.myasoedov.vktest.adapter.DialogCursorAdapter;
 import ru.rzn.myasoedov.vktest.db.DialogProvider;
 import ru.rzn.myasoedov.vktest.dto.VKChat;
@@ -42,8 +43,6 @@ public class DialogsFragment extends SwipeRefreshListFragment implements LoaderM
         setEmptyText(getString(R.string.no_dialogs));
         getListView().setDivider(null);
         getListView().setDividerHeight(0);
-        getActivity().getWindow().setBackgroundDrawableResource(R.color.background_dialog);
-        VKService.getDialogs();
         setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -58,7 +57,7 @@ public class DialogsFragment extends SwipeRefreshListFragment implements LoaderM
         super.onResume();
         prepareActionBar();
         getLoaderManager().initLoader(DialogProvider.URI_ALL_DIALOGS, null, this);
-
+        VKService.getDialogs();
         receiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -88,11 +87,9 @@ public class DialogsFragment extends SwipeRefreshListFragment implements LoaderM
     public void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
         VKChat chat = ((DialogCursorAdapter) getListAdapter()).getItem(position);
-        getActivity().getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.container, MessageFragment.newInstance(chat))
-                .addToBackStack(null)
-                .commit();
+        Intent intent = new Intent(getActivity(), VKChatActivity.class);
+        intent.putExtra(MessageFragment.CHAT, chat);
+        getActivity().startActivity(intent);
     }
 
     @Override
@@ -117,7 +114,7 @@ public class DialogsFragment extends SwipeRefreshListFragment implements LoaderM
 
     @Override
     public void onLoaderReset(Loader loader) {
-
+        ((CursorAdapter) getListAdapter()).swapCursor(null);
     }
 
 }

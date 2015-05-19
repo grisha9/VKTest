@@ -6,7 +6,7 @@ import android.widget.AbsListView;
  * Created by grisha on 03.05.15.
  */
 public abstract class EndlessScrollListener implements AbsListView.OnScrollListener {
-    private int visibleThreshold = 5;
+    private static final int VISIBLE_THRESHOLD = 5;
 
     private int previousTotalItemCount = 0;
 
@@ -34,7 +34,7 @@ public abstract class EndlessScrollListener implements AbsListView.OnScrollListe
 
 
         if (!loading && totalItemCount > 0 && visibleItemCount > 0
-                && (firstVisibleItem - visibleThreshold  <= 0)) {
+                && (firstVisibleItem - VISIBLE_THRESHOLD <= 0)) {
             onLoadMore(totalItemCount);
             loading = true;
         }
